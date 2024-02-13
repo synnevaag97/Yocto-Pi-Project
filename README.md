@@ -11,7 +11,7 @@ Minor project on completed specific tasks with the Yocto Project.
 | 2 | Update busybox from 1.35 to 1.36  | ✅ |
 | 3   | Add Vim to the distribution  | ✅ |
 | 4   | Change the keyboard to be Norwegian and not US |  |
-| 5   | Create my own image which inherit from core-image-base, instead of changing build conf files.  | |
+| 5   | Create my own image which inherit/require from core-image-base, instead of changing build conf/layer.conf file.  | ✅ |
 | 6   | Create an true minimal image which boots up in under 2 seconds. The 'minimal' images provided by poky takes up to 10 seconds to boot.   | |
 
 
@@ -51,5 +51,9 @@ This line will include the recipe or package vim into the build. When you boot u
 
 Alternatively, you can add an .bbappend file in you meta layer. In my meta-trym layer i have added a folder images and then a file core-image-base.bbappend. This file will append wathever is inside the file onto the original image core-image-base. This way we do not have to change the build folder files and instead simply adding a line in the .bbappend file. 
 
-## Task 4
 
+## Task 5
+Was solved by creating a trym-image.bb file which require from core-image-base.bb. It was not possible to use inherit for this problem, because inherit is only used for .bbclass files. For .bb files we need to use require which has different syntax to it. 
+Also a package was added in the image for testing. 
+
+The Vim was still installed, so when we require from core-image-base.bb, we also require from its .bbappend files. Good to know. 
