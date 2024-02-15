@@ -12,7 +12,8 @@ Minor project on completed specific tasks with the Yocto Project.
 | 3   | Add Vim to the distribution  | ✅ |
 | 4   | Change the keyboard to be Norwegian and not US |  |
 | 5   | Create my own image which inherit/require from core-image-base, instead of changing build conf/layer.conf file.  | ✅ |
-| 6   | Create an true minimal image which boots up in under 2 seconds. The 'minimal' images provided by poky takes up to 10 seconds to boot.   | |
+| 6 | Create a helloworld.sh bash script, add it to file system of image and run the file. | ✅ |  
+|    | Create an true minimal image which boots up in under 2 seconds. The 'minimal' images provided by poky takes up to 10 seconds to boot.   | |
 
 
 
@@ -57,3 +58,21 @@ Was solved by creating a trym-image.bb file which require from core-image-base.b
 Also a package was added in the image for testing. 
 
 The Vim was still installed, so when we require from core-image-base.bb, we also require from its .bbappend files. Good to know. 
+
+
+## Task 6
+The helloWorld.sh script was added by creating the recipe helloworld in the meta-trym layer. The recipe was the added to the image with: IMAGE_INSTALL += "helloworld". 
+
+The recipe is built up of these elements: 
+* SUMMARY : Provides a breif description of the package i.e. recipe. 
+* DESCRIPTION : Gives a more detailed description of the package. 
+* RDEPENDS : Specifies runtime dependencies. ${PN} is a variable refering to the package name. In this case the recipe depends on bash. 
+* LICENCE : Specifies the lincence under which the pacakge is distributed. In this case MIT. 
+* LIC_FILES_CHKSUM : Checks the checksum of the licence file to ensure its integrity. 
+* SRC_URI : Specifies the location of the source files. It fetches the bash script from the local filesystem i.e. the folder files. 
+* S : Specifies the location of the source files within the Yocto build environment. ${WORKDIR} is the working directory. 
+* do_install() : Is a bitbake task that defines what action should be taken to install the package onto the target filesystem. The first line create the target directory, and the second line installs the bash script into the direcotry with permission 0755 which is (read, wirte, execute owner, read and execute for group and others). 
+
+Variables:
+* ${D} : Is the root directory in target.
+* ${binddir} : Is the folder where binary files (executables) are installed. 
