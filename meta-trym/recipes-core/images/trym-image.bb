@@ -4,3 +4,4 @@ require recipes-core/images/core-image-base.bb
 LICENSE = "MIT"
 #IMAGE_INSTALL = "packagegroup-core-boot"
 IMAGE_INSTALL += "helloworld"
+IMAGE_INSTALL += "tmp102"

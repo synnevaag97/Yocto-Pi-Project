@@ -1,0 +1,2 @@
+IMAGE_INSTALL += "i2c-tools"
+#CORE_IMAGE_EXTRA_INSTALL += "i2cdev"

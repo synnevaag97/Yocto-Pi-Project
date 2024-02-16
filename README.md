@@ -1,8 +1,34 @@
 # Repository for Yocto project
-Minor project on completed specific tasks with the Yocto Project. 
+Yocto project with several smaller task to learn various aspect on Yocto. With a final objective of creating a minimal image that boots in less then 2 seconds with bluetooth capabilities. 
+
+# Raspberry Pi
+
+These tasks are completed on a Raspberry Pi 3 Model B 64bit.  
+This Pi has a Broadcom BCM 2837 SoC which is based on the ARM Cortex-A53 architecture i.e. a 64 bit ARMv8 architecture. 
+It contains a quad-core ARM Cortex-A53 CPU running at 1.2GHz, along with GPU, RAM, USB controllers Ethernet controller etc. 
+
+## Booting
+The booting process of a raspberry pi is described here:
+https://www.youtube.com/watch?v=ni72NvaX7kU
 
 
-## Tasks
+# Useful Commands
+* grep
+* rg
+* find
+* mount
+* gparted
+* lsmod : Listing modules.
+* insmode : Inserts a kernel module into the running kernel.
+* modprobe : Load/unload kernel modules into the running kernel. 
+* dtc : Device tree compiler
+
+
+# Repo
+Poky and meta-layers that is not custom are added to the repo using submodules. 
+https://git-scm.com/book/en/v2/Git-Tools-Submodules
+
+# Tasks
 
 
 | Task  | Description | Completed |
@@ -13,7 +39,8 @@ Minor project on completed specific tasks with the Yocto Project.
 | 4   | Change the keyboard to be Norwegian and not US |  |
 | 5   | Create my own image which inherit/require from core-image-base, instead of changing build conf/layer.conf file.  | ✅ |
 | 6 | Create a helloworld.sh bash script, add it to file system of image and run the file. | ✅ |  
-|    | Create an true minimal image which boots up in under 2 seconds. The 'minimal' images provided by poky takes up to 10 seconds to boot.   | |
+| 7 | Add a TMP102 sensor and measure its values. Add  I2C related recipes, write a bash script to read out temperature data from the I2C temp sensor. | |
+|    | Create an true minimal image which boots up in under 2 seconds. The 'minimal' images provided by poky takes up to 10 seconds to boot. The image shall have bluetooth capabilities.    | |
 
 
 
@@ -57,7 +84,7 @@ Alternatively, you can add an .bbappend file in you meta layer. In my meta-trym 
 Was solved by creating a trym-image.bb file which require from core-image-base.bb. It was not possible to use inherit for this problem, because inherit is only used for .bbclass files. For .bb files we need to use require which has different syntax to it. 
 Also a package was added in the image for testing. 
 
-The Vim was still installed, so when we require from core-image-base.bb, we also require from its .bbappend files. Good to know. 
+The Vim was not installed, so when we require from core-image-base.bb, we do not require from its .bbappend files. Good to know. 
 
 
 ## Task 6
@@ -76,3 +103,40 @@ The recipe is built up of these elements:
 Variables:
 * ${D} : Is the root directory in target.
 * ${binddir} : Is the folder where binary files (executables) are installed. 
+
+The helloworld.sh file was loaded into the /usr/bin/ folder on the Pi and could run from there.
+
+
+## Task 7
+This task was solved by first connecting the TMP102 I2C sensor to the raspberry pi according the diagram provided at: https://pinout.xyz/pinout/i2c 
+
+Then to include I2C tools for the image i added IMAGE_INSTALL+= "i2c-tools" in the trym-image.bbappend in the new recipe for the i2c temp sensor. 
+
+When booting up the raspberry pi the i2c device was not accessible. This could be fixed multiple ways. Both these require setting configurations on the Pi after it is booted. 
+
+#### Solution 1
+
+One solution was to add 'dtparam=i2c_arm=on' to the /boot/config.txt file which is specific for the raspberry pi.
+https://github.com/fivdi/i2c-bus/blob/master/doc/raspberry-pi-i2c.md#step-1---enable-i2c
+
+Then reboot the system and load the driver. The drivers are located at /lib/modules/../kernel/drivers/. The i2c-dev driver can be loaded using modprobe. First to see which modules are inserted in the kernel we can run
+
+    lsmod
+    lsmod | grep i2c*
+
+If i2c-dev is not listed here then we need to insert it such that the kernel have access to its functionality.
+
+    insmod /path-to-driver/i2c-dev.ko.xz
+
+Then the driver is inserted and we can load the module along with any dependencies for it to be operational 
+
+    modprobe i2c-dev
+
+But for this to work the config file must be set and the pi rebooted beforehand. 
+
+To test the i2c temp sensor the script readTMP102.sh is loaded into the file system like in task 6 and run on the target. 
+
+#### Solution 2
+Another solution is to add these commands to the top of the bash script such that everything i automated when running the script. This is done in a second file readTMP102_v2.sh. However, we still need to set the variable in config.txt and reboot the system. 
+
+
