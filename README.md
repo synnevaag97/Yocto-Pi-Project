@@ -40,6 +40,8 @@ https://git-scm.com/book/en/v2/Git-Tools-Submodules
 | 5   | Create my own image which inherit/require from core-image-base, instead of changing build conf/layer.conf file.  | ✅ |
 | 6 | Create a helloworld.sh bash script, add it to file system of image and run the file. | ✅ |  
 | 7 | Add a TMP102 sensor and measure its values. Add  I2C related recipes, write a bash script to read out temperature data from the I2C temp sensor. | |
+| 8 | Complete task 7 by overriding device tree, such that device is loaded when kernel is booted. | |
+| 9 | Create and add out-of-tree Hello World kernel module | ✅ |
 |    | Create an true minimal image which boots up in under 2 seconds. The 'minimal' images provided by poky takes up to 10 seconds to boot. The image shall have bluetooth capabilities.    | |
 
 
@@ -107,7 +109,7 @@ Variables:
 The helloworld.sh file was loaded into the /usr/bin/ folder on the Pi and could run from there.
 
 
-## Task 7
+## Task 7 Add I2C Device for reading temperature measurments.
 This task was solved by first connecting the TMP102 I2C sensor to the raspberry pi according the diagram provided at: https://pinout.xyz/pinout/i2c 
 
 Then to include I2C tools for the image i added IMAGE_INSTALL+= "i2c-tools" in the trym-image.bbappend in the new recipe for the i2c temp sensor. 
@@ -140,3 +142,36 @@ To test the i2c temp sensor the script readTMP102.sh is loaded into the file sys
 Another solution is to add these commands to the top of the bash script such that everything i automated when running the script. This is done in a second file readTMP102_v2.sh. However, we still need to set the variable in config.txt and reboot the system. 
 
 
+## Task 8 Override Device Tree
+Add i2c-dev into the dts and load that. 
+
+Another solution is to set the driver in the device tree. This solution is more general and is yocto specific. The previous alternative is raspberry specific and must be done everytime after the pi is booted the first time. But we want the i2c driver to be initialised when we boot the iamge for the first time.
+
+The meta-raspberrypi provide dtb files of their device tree. This is binary files of the dts files, and therefore not designed to be altered because they expect the user to change settings regarding devices on the raspberry pi terminal. 
+
+After converting dtb to dts using the command formatted
+
+    dtc -I dtb -O dts <filename>.dtb
+
+it shows that the I2C is in fact status okay but still it dosen't initiate at startup. This could imply that the config.txt file overwrite these settings? 
+Testing to include i2cdev which supposedly have some sort of i2c bus scanning utility lsi2c. 
+Could not use i2cdev because it dosen't exist on the kirkstone version? 
+I also don't think that this could be solved by adding recipes and features since it is Pi specific issue. 
+
+
+Guide to enabling I2C with Yocto project using device tree: https://www.digikey.no/en/maker/projects/intro-to-embedded-linux-part-5-how-to-enable-i2c-in-the-yocto-project/6843bbf9a83c4c96888fccada1e7aedf
+
+
+## Task 9 Out-of-Tree Kernel Module
+This task was solved by following the guide at https://community.nxp.com/t5/i-MX-Processors-Knowledge-Base/Incorporating-Out-of-Tree-Modules-in-YOCTO/ta-p/1373825, and the guide https://tldp.org/LDP/lkmpg/2.6/html/lkmpg.html#AEN121. 
+
+A layer for the kernel module was created and added using:
+
+    bitbake-layers create-layer ../meta-<layer-name>
+    bitbake-layers add-layer ../<layer-name>/
+
+To get started the hello-mod in the meta-skeleton in the poky repository was copied over to our new layer. The recipe hello-mod was then added to the trym-image with 
+
+    IMAGE_INSTALL += "hello-mod"
+
+After building image, flashing it to the SD card and booting up the PI, we could load the module with 'modprobe hello' and remove it with 'rmmod hello', resulting in the terminal messages 'Hello World' and 'Goodbye Cruel World' respectively. 
